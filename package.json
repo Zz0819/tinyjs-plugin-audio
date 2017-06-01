@@ -1,6 +1,6 @@
 {
   "name": "tinyjs-plugin-audio",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "fangjun.yfj",
   "description": "Tiny.js 音效插件",
   "keywords": [
@@ -9,7 +9,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git@gitlab.alipay-inc.com:tiny-plugin/tinyjs-plugin-audio.git"
+    "url": "git@gitlab.alipay-inc.com:tiny-plugins/tinyjs-plugin-audio.git"
   },
   "main": "src/index.js",
   "files": [
