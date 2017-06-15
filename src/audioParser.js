@@ -32,17 +32,21 @@ export function audioParser() {
 
 export function audioUrlParser(resourceUrl) {
   let url;
+  if (!Tiny.isArray(resourceUrl)) {
+    const arr = [];
+    arr.push(resourceUrl);
+    resourceUrl = arr;
+  }
   for (let i = 0; i < resourceUrl.length; i++) {
     const ext = _getExt(resourceUrl[i]);
-    if (_allowedExt.indexOf(ext) === -1) break;
-    if (_canPlay(ext)) {
-      url = resourceUrl[i];
-      break;
-    } else {
-      url = resourceUrl[i].replace(/\.[^\.\/\?\\]*(\?.*)?$/, '.' + _getCanPlayExtension()); // eslint-disable-line
+    if (_allowedExt.indexOf(ext) !== -1) {
+      if (_canPlay(ext)) {
+        url = resourceUrl[i];
+      } else {
+        url = resourceUrl[i].replace(/\.[^\.\/\?\\]*(\?.*)?$/, '.' + _getCanPlayExtension()); // eslint-disable-line
+      }
     }
   }
-
   return url;
 }
 

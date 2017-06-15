@@ -70,6 +70,19 @@ loader.prototype.add = function (name, url, options, cb) {
     url = com.audioUrlParser(url);
   }
 
+  if (Tiny.isArray(name)) {
+    name.forEach(function (item, i) {
+      let s;
+      if (item.url) {
+        s = com.audioUrlParser(item.url);
+        s && (name[i].url = s);
+      } else {
+        s = com.audioUrlParser(item);
+        s && (name[i] = s);
+      }
+    });
+  }
+
   return baseAdd.call(this, name, url, options, cb);
 };
 

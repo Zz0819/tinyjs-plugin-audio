@@ -1,3 +1,4 @@
+import {com} from './index';
 import utils from './utils';
 import Audio from './Audio';
 
@@ -39,7 +40,7 @@ class AudioManager {
    * @return {Tiny.audio.com.Audio}
    */
   getAudio(name) {
-    const audio = new Audio(AudioManager.audios[name], this);
+    const audio = new Audio(AudioManager.audios[com.audioUrlParser(name)], this);
     this.sounds.push(audio);
     return audio;
   }
