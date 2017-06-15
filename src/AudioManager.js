@@ -40,7 +40,7 @@ class AudioManager {
    * @return {Tiny.audio.com.Audio}
    */
   getAudio(name) {
-    const audio = new Audio(AudioManager.audios[com.audioUrlParser(name)], this);
+    const audio = new Audio(AudioManager.audios[com.audioUrlParser(name) || name], this);
     this.sounds.push(audio);
     return audio;
   }
