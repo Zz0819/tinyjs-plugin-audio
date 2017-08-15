@@ -24,7 +24,7 @@
 
 引用 Tiny.js 源码
 ``` html
-<script src="http://tinyjs.net/libs/tiny.debug.js"></script>
+<script src="https://a.alipayobjects.com/g/tiny/tiny/1.1.0/tiny.js"></script>
 ```
 ``` js
 require('tinyjs-plugin-audio');
