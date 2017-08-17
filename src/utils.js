@@ -25,8 +25,8 @@ if (isAudioSupported) {
   if (isM4aSupported)_setAudioExt('m4a');
 
   if (isWebAudioSupported) {
-    createGainNode = function createGainNode(ctx) {
-      return ctx.createGain ? ctx.createGain() : ctx.createGainNode();
+    createGainNode = function createGainNode() {
+      return globalWebAudioContext.createGain ? globalWebAudioContext.createGain() : globalWebAudioContext.createGainNode();
     };
   }
 }

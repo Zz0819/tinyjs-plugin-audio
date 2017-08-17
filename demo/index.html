@@ -14,26 +14,75 @@ p {font-size: 32px;text-align: center;padding: 20px 0;}
 </head>
 <body>
 <p><a href="javascript:;" id="J-playBtn">播放</a></p>
+<p><a href="javascript:;" id="J-pauseBtn">暂停</a></p>
 <p><a href="javascript:;" id="J-stopBtn">停止</a></p>
+<p><a href="javascript:;" id="J-playBtn2">播放2</a></p>
+<p><a href="javascript:;" id="J-pauseBtn2">暂停2</a></p>
+<p><a href="javascript:;" id="J-stopBtn2">停止2</a></p>
+<p id="music1">
+  <span style="display: block;font-size: 14px;">getAverageFrequency(获取平均频域数据)-播放1</span>
+  <span style="display: block;font-size: 14px;">使用setInterval 100ms取一次</span>
+  <span style="display: block;font-size: 12px;"></span>
+</p>
+<p id="music2">
+  <span style="display: block;font-size: 14px;">getAverageFrequency(获取平均频域数据)-播放2</span>
+  <span style="display: block;font-size: 14px;">使用setInterval 100ms取一次</span>
+  <span style="display: block;font-size: 12px;"></span>
+</p>
 <script src="http://tinyjs.net/libs/tiny.debug.js"></script>
 <script src="../dist/index.js"></script>
 
 <script type="text/javascript">
   // 加载音频并循环播放
+  var analyser;
   Tiny.Loader.add([
-    {name: 'music', url: 'https://os.alipayobjects.com/rmsportal/aVTYsHoGDVBnqXKuYDrs.mp3'}
+    {name: 'music', url: 'https://os.alipayobjects.com/rmsportal/aVTYsHoGDVBnqXKuYDrs.mp3'},
+    {name: 'music2', url: 'https://os.alipayobjects.com/rmsportal/aVTYsHoGDVBnqXKuYDrs.mp3'}
+
   ]);
   Tiny.Loader.load(function(){
     var music = Tiny.audio.manager.getAudio('music');
-    music.loop = true;
+    var music2 = Tiny.audio.manager.getAudio('music2');
 
+    music.loop = true;
     document.getElementById('J-playBtn').addEventListener('click', function () {
+      var $frequency = document.getElementById('music1');
+      var analyser = new Tiny.audio.com.AudioAnalyser(music, 256);
+      setInterval(function() {
+        $frequency.children[2].innerHTML = analyser.getAverageFrequency();
+      }, 100);
+
       music.play();
+
+      console.log(analyser.getAverageFrequency());
+    });
+
+    document.getElementById('J-pauseBtn').addEventListener('click', function () {
+      music.pause();
     });
 
     document.getElementById('J-stopBtn').addEventListener('click', function () {
       music.stop();
     });
+
+    document.getElementById('J-playBtn2').addEventListener('click', function () {
+      var $frequency = document.getElementById('music2');
+      music2.play();
+      analyser = new Tiny.audio.com.AudioAnalyser(music2, 256);
+      setInterval(function() {
+        $frequency.children[2].innerHTML = analyser.getAverageFrequency();
+      }, 100);
+    });
+
+    document.getElementById('J-pauseBtn2').addEventListener('click', function () {
+      music2.pause();
+    });
+
+    document.getElementById('J-stopBtn2').addEventListener('click', function () {
+      music2.stop();
+    });
+
+
   });
 </script>
 </body>

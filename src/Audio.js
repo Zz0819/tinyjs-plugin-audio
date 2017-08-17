@@ -31,6 +31,9 @@ class Audio extends Tiny.EventEmitter {
     if (!utils.isWebAudioSupported) {
       this.audio = new window.Audio();
       this.audio.addEventListener('ended', this._onEnd.bind(this));
+    } else {
+      this.context = utils.globalWebAudioContext;
+      this.gainNode = utils.createGainNode();
     }
 
     this.reset();
@@ -42,26 +45,38 @@ class Audio extends Tiny.EventEmitter {
    * @param {boolean}  pause  是否从暂停点播放
    * @return {Tiny.audio.com.Audio}
    */
-  play(pause) {
-    if ((!pause && this.paused) || (!pause && this.playing)) return this;
+  play() {
+    if (this.playing) return this;
     this.playing = true;
     this.emit('play');
 
     if (utils.isWebAudioSupported) {
-      this.audio = this.manager.context.createBufferSource();
-      this.audio.start = this.audio.start || this.audio.noteOn;
-      this.audio.stop = this.audio.stop || this.audio.noteOff;
+      // 创建AudioBufferNode
+      this.source = this.context.createBufferSource();
 
-      this.audio.buffer = this.data;
-      this.audio.loop = this.loop;
-      this._startTime = this.manager.context.currentTime;
+      // 兼容浏览器处理start和stop方法
+      this.source.start = this.source.start || this.source.noteOn;
+      this.source.stop = this.source.stop || this.source.noteOff;
 
-      this.audio.onended = this._onEnd.bind(this);
-      this.audio.gainNode = utils.createGainNode(this.manager.context);
-      this.audio.gainNode.connect(this.manager.gainNode);
+      // 设置是否循环
+      this.source.loop = this.loop;
 
-      this.audio.connect(this.audio.gainNode);
-      this.audio.start(0, pause ? this._lastPauseTime : null);
+      // 监听音频onended事件
+      this.source.onended = this._onEnd.bind(this);
+
+      this._startTime = this.context.currentTime;
+
+      // 将音频源链接到gainNode音频处理节点（gainNode接口表示音量变更，调节音量。）
+      this.source.connect(this.gainNode);
+
+      // 将gainNode连接到硬件设备
+      this.gainNode.connect(this.context.destination);
+
+      // 设置音频源buffer数据
+      this.source.buffer = this.data;
+
+      // 播放音频数据
+      this.source.start(0, this._paused ? this._lastPauseTime : 0);
     } else {
       this.audio.src = this.data.children[0].src;
       this.audio.preload = 'auto';
@@ -78,18 +93,36 @@ class Audio extends Tiny.EventEmitter {
    * @return {Tiny.audio.com.Audio}
    */
   stop() {
-    if (!this.playing) return this;
+    this.emit('stop');
 
     if (utils.isWebAudioSupported) {
-      this.audio.stop(0);
+      this.source.stop(0);
+      this._paused = false;
+      this._startTime = this.context.currentTime;
     } else {
       this.audio.pause();
       this.audio.currentTime = 0;
     }
     this.playing = false;
-    this.emit('stop');
+    this._paused = false;
+    this.reset();
 
     return this;
+  }
+
+  pause() {
+    if(!this.playing) return this;
+
+    this.emit('pause');
+    this._offsetTime += this.context.currentTime - this._startTime;
+    this._lastPauseTime = (this._offsetTime % this.data.duration);
+    if(utils.isWebAudioSupported) {
+      this.source.stop(0);
+    } else {
+      this.audio.pause();
+    }
+    this.playing = false;
+    this._paused = true;
   }
 
   /**
@@ -99,9 +132,9 @@ class Audio extends Tiny.EventEmitter {
     this._startTime = 0;
     this._lastPauseTime = 0;
     this._offsetTime = 0;
-
     this.playing = false;
-    //if(utils.isWebAudioSupported)this.audio = null;
+    this._paused = false;
+    if(utils.isWebAudioSupported)this.audio = null;
   }
 
   /**
@@ -121,7 +154,7 @@ class Audio extends Tiny.EventEmitter {
         this.emit('end');
       }
     } else {
-      if (!this.paused) {
+      if (!this._paused) {
         this.reset();
         this.emit('end');
       }
@@ -138,31 +171,31 @@ class Audio extends Tiny.EventEmitter {
    * @member {Tiny.audio.com.Audio}
    * @default false
    */
-  get paused() {
-    return this._paused;
-  }
-
-  set paused(value) {
-    if (value === this._paused) return;
-    if (value) {
-      if (utils.isWebAudioSupported) {
-        this._offsetTime += this.manager.context.currentTime - this._startTime;
-        this._lastPauseTime = this._offsetTime % this.audio.buffer.duration;
-        if (this.audio) this.audio.stop(0);
-      } else {
-        if (this.audio) this.audio.pause();
-      }
-      this.emit('pause');
-    } else {
-      if (utils.isWebAudioSupported) {
-        this.play(true);
-      } else {
-        if (this.audio) this.audio.play();
-      }
-      this.emit('resume');
-    }
-    this._paused = value;
-  }
+  //get paused() {
+  //  return this._paused;
+  //}
+  //
+  //set paused(value) {
+  //  if (value === this._paused) return;
+  //  if (value) {
+  //    if (utils.isWebAudioSupported) {
+  //      this._offsetTime += this.manager.context.currentTime - this._startTime;
+  //      this._lastPauseTime = this._offsetTime % this.audio.buffer.duration;
+  //      if (this.audio) this.audio.stop(0);
+  //    } else {
+  //      if (this.audio) this.audio.pause();
+  //    }
+  //    this.emit('pause');
+  //  } else {
+  //    if (utils.isWebAudioSupported) {
+  //      this.play(true);
+  //    } else {
+  //      if (this.audio) this.audio.play();
+  //    }
+  //    this.emit('resume');
+  //  }
+  //  this._paused = value;
+  //}
 
   /**
    * 是否循环播放

@@ -17,6 +17,7 @@ import utils from './utils';
 import AudioManager from './AudioManager';
 import Audio from './Audio';
 import {audioParser, audioUrlParser} from './audioParser';
+import AudioAnalyser from './AudioAnalyser';
 
 /**
  * 音效对象
@@ -50,6 +51,7 @@ import {audioParser, audioUrlParser} from './audioParser';
 const com = {
   utils,
   AudioManager,
+  AudioAnalyser,
   Audio,
   audioParser,
   audioUrlParser,

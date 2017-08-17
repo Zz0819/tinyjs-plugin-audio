@@ -1,5 +1,4 @@
 import {com} from './index';
-import utils from './utils';
 import Audio from './Audio';
 
 /**
@@ -17,7 +16,7 @@ class AudioManager {
      *
      * @member {boolean}
      */
-    this.enabled = utils.isAudioSupported;
+    //this.enabled = utils.isAudioSupported;
 
     /**
      * 实例化之后的音效集合
@@ -25,12 +24,6 @@ class AudioManager {
      * @member {array}
      */
     this.sounds = [];
-
-    if (utils.isWebAudioSupported) {
-      this.context = utils.globalWebAudioContext;
-      this.gainNode = utils.createGainNode(this.context);
-      this.gainNode.connect(this.context.destination);
-    }
   }
 
   /**
@@ -64,7 +57,7 @@ class AudioManager {
   pause(value) {
     value = (value !== false);
     const len = this.sounds.length;
-    for (let i = 0; i < len; i++) this.sounds[i].paused = value;
+    for (let i = 0; i < len; i++) this.sounds[i]._paused = value;
   }
 
   /**
