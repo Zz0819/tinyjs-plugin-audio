@@ -57,7 +57,13 @@ class AudioManager {
   pause(value) {
     value = (value !== false);
     const len = this.sounds.length;
-    for (let i = 0; i < len; i++) this.sounds[i]._paused = value;
+    if(value) {
+      for (let i = 0; i < len; i++) this.sounds[i].pause();
+
+      return;
+    }
+
+    for (let i = 0; i < len; i++) this.sounds[i].play();
   }
 
   /**
