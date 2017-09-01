@@ -31,6 +31,9 @@ class Audio extends Tiny.EventEmitter {
     if (!utils.isWebAudioSupported) {
       this.audio = new window.Audio();
       this.audio.addEventListener('ended', this._onEnd.bind(this));
+      this.audio.src = this.data.children[0].src;
+      this.audio.preload = 'auto';
+      this.audio.load();
     } else {
       this.context = utils.globalWebAudioContext;
       this.gainNode = utils.createGainNode();
@@ -42,11 +45,11 @@ class Audio extends Tiny.EventEmitter {
   /**
    * 播放音效
    *
-   * @param {boolean}  pause  是否从暂停点播放
    * @return {Tiny.audio.com.Audio}
    */
   play() {
     if (this.playing) return this;
+
     this.playing = true;
     this.emit('play');
 
@@ -78,9 +81,6 @@ class Audio extends Tiny.EventEmitter {
       // 播放音频数据
       this.source.start(0, this._paused ? this._lastPauseTime : 0);
     } else {
-      this.audio.src = this.data.children[0].src;
-      this.audio.preload = 'auto';
-      this.audio.load();
       this.audio.play();
     }
 
@@ -88,7 +88,7 @@ class Audio extends Tiny.EventEmitter {
   }
 
   /**
-   * 停止播放音效
+   * 停止播放音效(音乐播放时间归零)
    *
    * @return {Tiny.audio.com.Audio}
    */
@@ -110,19 +110,26 @@ class Audio extends Tiny.EventEmitter {
     return this;
   }
 
+  /**
+   * 暂停播放音乐(再次播放从暂停点开始)
+   *
+   * @return {Tiny.audio.com.Audio}
+   */
   pause() {
     if(!this.playing) return this;
 
     this.emit('pause');
-    this._offsetTime += this.context.currentTime - this._startTime;
-    this._lastPauseTime = (this._offsetTime % this.data.duration);
     if(utils.isWebAudioSupported) {
+      this._offsetTime += this.context.currentTime - this._startTime;
+      this._lastPauseTime = (this._offsetTime % this.data.duration);
       this.source.stop(0);
     } else {
       this.audio.pause();
     }
     this.playing = false;
     this._paused = true;
+
+    return this;
   }
 
   /**
@@ -162,42 +169,6 @@ class Audio extends Tiny.EventEmitter {
   }
 
   /**
-   * 是否被暂停了
-   *
-   * > Tips:
-   * > 如果要设置音效暂停，直接设置这个`Tiny.Audio`实例的`paused`属性，即：`music.paused = true;`。
-   * > 再播放时可以从暂停点接着播放了：`music.play(true);`
-   *
-   * @member {Tiny.audio.com.Audio}
-   * @default false
-   */
-  //get paused() {
-  //  return this._paused;
-  //}
-  //
-  //set paused(value) {
-  //  if (value === this._paused) return;
-  //  if (value) {
-  //    if (utils.isWebAudioSupported) {
-  //      this._offsetTime += this.manager.context.currentTime - this._startTime;
-  //      this._lastPauseTime = this._offsetTime % this.audio.buffer.duration;
-  //      if (this.audio) this.audio.stop(0);
-  //    } else {
-  //      if (this.audio) this.audio.pause();
-  //    }
-  //    this.emit('pause');
-  //  } else {
-  //    if (utils.isWebAudioSupported) {
-  //      this.play(true);
-  //    } else {
-  //      if (this.audio) this.audio.play();
-  //    }
-  //    this.emit('resume');
-  //  }
-  //  this._paused = value;
-  //}
-
-  /**
    * 是否循环播放
    *
    * @member {Tiny.audio.com.Audio}
@@ -212,6 +183,24 @@ class Audio extends Tiny.EventEmitter {
     this._loop = value;
     if (utils.isWebAudioSupported && this.audio) {
       this.audio.loop = value;
+    }
+  }
+
+  /**
+   * 音频音量调节
+   * @value {number} range(0, 1)
+   * @member {Tiny.audio.com.Audio}
+   * @default 1
+   */
+  get volume() {
+    return utils.isWebAudioSupported ? this.gainNode.gain.value : this.audio.volume;
+  }
+
+  set volume(value) {
+    if(utils.isWebAudioSupported) {
+      this.gainNode.gain.value = value;
+    } else {
+      this.audio.volume = value;
     }
   }
 }

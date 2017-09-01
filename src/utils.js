@@ -2,7 +2,7 @@ const Resource = Tiny.loaders.Resource;
 
 const isHTMLAudioSupported = !!window.Audio;
 const webAudioContext = window.AudioContext || window.webkitAudioContext;
-const isWebAudioSupported = !!webAudioContext;
+const isWebAudioSupported = window.disableWebAudio === true ? false : !!webAudioContext;
 const isAudioSupported = isWebAudioSupported || isHTMLAudioSupported;
 let isMp3Supported = false;
 let isOggSupported = false;
@@ -56,5 +56,5 @@ export default {
   isWavSupported,
   isM4aSupported,
   globalWebAudioContext,
-  createGainNode,
+  createGainNode
 };

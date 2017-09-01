@@ -10,51 +10,80 @@
 <style>
 html, body, p, div {margin:0;padding:0;}
 p {font-size: 32px;text-align: center;padding: 20px 0;}
+.tiny-audio-control {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+}
+.tiny-audio-control p {
+  display: inline-block;
+  margin-left: 7px;
+  width: 30%;
+}
+
+.tiny-audio-control a {
+  display: block;
+  text-align: center;
+  height: 50px;
+  line-height: 50px;
+  background: rgba(255, 255, 255, .5);
+  border-radius: 25px;
+  text-decoration: none;
+  color: #000;
+}
+
+.mask {
+  position: fixed;
+  background: rgba(0, 0, 0, .7);
+  color: #fff;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding-top: 150px;
+}
 </style>
 </head>
 <body>
-<p><a href="javascript:;" id="J-playBtn">播放</a></p>
-<p><a href="javascript:;" id="J-pauseBtn">暂停</a></p>
-<p><a href="javascript:;" id="J-stopBtn">停止</a></p>
-<p><a href="javascript:;" id="J-playBtn2">播放2</a></p>
-<p><a href="javascript:;" id="J-pauseBtn2">暂停2</a></p>
-<p><a href="javascript:;" id="J-stopBtn2">停止2</a></p>
-<p id="music1">
-  <span style="display: block;font-size: 14px;">getAverageFrequency(获取平均频域数据)-播放1</span>
-  <span style="display: block;font-size: 14px;">使用setInterval 100ms取一次</span>
-  <span style="display: block;font-size: 12px;"></span>
-</p>
-<p id="music2">
-  <span style="display: block;font-size: 14px;">getAverageFrequency(获取平均频域数据)-播放2</span>
-  <span style="display: block;font-size: 14px;">使用setInterval 100ms取一次</span>
-  <span style="display: block;font-size: 12px;"></span>
-</p>
+<div class="tiny-audio-control">
+  <p><a href="javascript:;" id="J-playBtn">播放</a></p>
+  <p><a href="javascript:;" id="J-pauseBtn">暂停</a></p>
+  <p><a href="javascript:;" id="J-stopBtn">停止</a></p>
+</div>
+<div class="mask">
+  <p>上滑增加音量(+)</p>
+  <p>下滑减少音量(-)</p>
+</div>
+<script>window.disableWebAudio = false;</script>
 <script src="https://a.alipayobjects.com/g/tiny/tiny/1.1.0/tiny.js"></script>
 <script src="../dist/index.js"></script>
-
 <script type="text/javascript">
   // 加载音频并循环播放
-  var analyser;
   Tiny.Loader.add([
-    {name: 'music', url: 'https://os.alipayobjects.com/rmsportal/aVTYsHoGDVBnqXKuYDrs.mp3'},
-    {name: 'music2', url: 'https://os.alipayobjects.com/rmsportal/aVTYsHoGDVBnqXKuYDrs.mp3'}
-
+    {name: 'music', url: 'https://gw.alipayobjects.com/os/rmsportal/OifrJuNotDkpBqTVpFAg.mp3'}
   ]);
-  Tiny.Loader.load(function(){
+
+  Tiny.Loader.load(function(e){
     var music = Tiny.audio.manager.getAudio('music');
-    var music2 = Tiny.audio.manager.getAudio('music2');
+    var analyser = new Tiny.audio.com.AudioAnalyser(music, 2048);
+    var graphics = new Tiny.Graphics();
+    var win = Tiny.WIN_SIZE;
+    var tinyText = new Tiny.Text('Tiny.js', {
+      fontFamily: 'Arial',
+      fontSize: 80,
+      fill: 'rgba(255, 255, 255, .8)',
+      align: 'center'
+    });
+    var mask = document.querySelector('.mask');
 
+    setTimeout(function() {
+      document.body.removeChild(mask);
+    }, 1000);
     music.loop = true;
+    music.volume = 0.5;
     document.getElementById('J-playBtn').addEventListener('click', function () {
-      var $frequency = document.getElementById('music1');
-      var analyser = new Tiny.audio.com.AudioAnalyser(music, 256);
-      setInterval(function() {
-        $frequency.children[2].innerHTML = analyser.getAverageFrequency();
-      }, 100);
-
       music.play();
-
-      console.log(analyser.getAverageFrequency());
     });
 
     document.getElementById('J-pauseBtn').addEventListener('click', function () {
@@ -65,22 +94,101 @@ p {font-size: 32px;text-align: center;padding: 20px 0;}
       music.stop();
     });
 
-    document.getElementById('J-playBtn2').addEventListener('click', function () {
-      var $frequency = document.getElementById('music2');
-      music2.play();
-      analyser = new Tiny.audio.com.AudioAnalyser(music2, 256);
-      setInterval(function() {
-        $frequency.children[2].innerHTML = analyser.getAverageFrequency();
-      }, 100);
+    var y;
+    document.body.addEventListener('touchstart', function(e) {
+      var touch = e.touches[0];
+      y = touch.pageY;
+      window.flag = true;
     });
 
-    document.getElementById('J-pauseBtn2').addEventListener('click', function () {
-      music2.pause();
+    document.body.addEventListener('touchmove', function(e) {
+      if(!window.flag) {
+        return;
+      }
+
+      var nowY = e.touches[0].pageY;
+      if(nowY > y) {
+        if(music.volume - 0.1 < 0) {
+          music.volume = 0;
+        } else {
+          music.volume -= 0.1;
+        }
+      } else {
+        if(music.volume + 0.1 > 1) {
+          music.volume = 1;
+        } else {
+          music.volume += 0.1;
+        }
+      }
+
+      y = nowY;
     });
 
-    document.getElementById('J-stopBtn2').addEventListener('click', function () {
-      music2.stop();
+    document.body.addEventListener('touchend', function(e) {
+      window.flag = false;
     });
+
+    var config = {
+      showFPS: true, // 显示帧频
+      dpi: 1.5, // 分辨率,
+      fixSize: true,
+      width: window.innerWidth,
+      height: window.innerHeight,
+      renderOptions: {
+        backgroundColor: 0x2a3145 // 画布背景色
+      }
+    };
+    // 新建App
+    var app = new Tiny.Application(config);
+
+    // 新建场景
+    var StartLayer = function () {
+      var self = this;
+      Tiny.Container.call(this);
+
+      //主调度调用绘制方法
+      app.onUpdate(function() {
+        var data = analyser.getFrequencyData();
+        var avgData = analyser.getAverageFrequency();
+        avgData && self.draw(data, avgData);
+      });
+
+      //绘制文字
+      tinyText.setAnchor(0.5, 0.5);
+      tinyText.position.x = win.width / 2;
+      tinyText.position.y = win.height / 2;
+      this.addChild(tinyText);
+    };
+    StartLayer.prototype = Object.create(Tiny.Container.prototype);
+    StartLayer.prototype.constructor = StartLayer;
+    StartLayer.prototype.draw = function(data, avgData) {
+      var scale = avgData / 255;
+      var x = 0;
+      var y = Tiny.WIN_SIZE.height / 1.1;
+
+      graphics.clear();
+      graphics.lineStyle(8 * scale, '0x00FF66', scale);
+
+      //绘制圆形
+      graphics.drawCircle(win.width / 2, win.height / 2, 250 * scale);
+      graphics.closePath();
+
+      //根据频域数据绘制折线
+      graphics.moveTo(x, y);
+      for(var i = 0; i < data.length; i++) {
+        if(data[i * 4]) {
+          x = i * 10;
+          y = win.height / 1.1 - data[i * 4];
+          graphics.lineTo(x, y);
+        }
+      }
+
+      tinyText.setOpacity(1 - scale);
+      tinyText.setScale(1 - scale);
+      this.addChild(graphics);
+    };
+    // 启动
+    app.run(new StartLayer());
   });
 </script>
 </body>

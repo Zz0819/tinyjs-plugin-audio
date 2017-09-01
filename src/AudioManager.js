@@ -7,17 +7,8 @@ import Audio from './Audio';
  * @class
  */
 class AudioManager {
-  /**
-   *
-   */
-  constructor() {
-    /**
-     * 当前环境是否支持音效
-     *
-     * @member {boolean}
-     */
-    //this.enabled = utils.isAudioSupported;
 
+  constructor() {
     /**
      * 实例化之后的音效集合
      *
@@ -56,14 +47,16 @@ class AudioManager {
    */
   pause(value) {
     value = (value !== false);
-    const len = this.sounds.length;
-    if(value) {
-      for (let i = 0; i < len; i++) this.sounds[i].pause();
 
-      return;
-    }
+    this.sounds.forEach(item => {
+      if(!value && item._paused) {
+        item.play();
 
-    for (let i = 0; i < len; i++) this.sounds[i].play();
+        return true;
+      }
+
+      item.playing && item.pause();
+    });
   }
 
   /**

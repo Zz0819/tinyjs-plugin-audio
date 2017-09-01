@@ -44,6 +44,16 @@ Tiny.Loader.add([
 ## 依赖
 - `Tiny.js`: [Link](http://tinyjs.net/#/docs/api)
 
+## 注意事项
+- ios10一下对audioContext支持不好。会出现播放音频迟缓，杂音很重甚至会听不到音乐。
+
+  - 建议ios10以下使用audio标签方式播放。使用姿势，引入在audio-plugin加载初始之前，配置window.disableWebAudio = true，即可。
+  - 当使用disableWebAudio模式时，AudioAnalyser将无法使用，实例化会warning，接口会返回[]和0。
+  - 当使用disableWebAudio模式时，ios表现volume无法set，get始终返回1。原因是ios物理音量优先级高于audio音量控制，不允许js设置音量。
+
+- ios9以下退出webview或压后台音乐不会暂停。
+
+  - 建议监听相应系统事件清掉audio对象或暂停音乐播放
 ## API文档
 
 TODO
